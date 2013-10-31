@@ -54,20 +54,20 @@
     };
 
     PhysJS.ConvexMesh.EdgeType = {
-        EdgeTypeConvex: 0,  //凸エッジ
+        EdgeTypeConvex : 0, //凸エッジ
         EdgeTypeConcave: 1, //凹エッジ
-        EdgeTypeFlag: 2     //平坦エッジ
+        EdgeTypeFlat   : 2  //平坦エッジ
     };
 
     PhysJS.ConvexMesh.prototype = {
         constructor: PhysJS.ConvexMesh,
 
         m_numVertices: null, //頂点数
-        m_numFacets: null,   //面数
-        m_numEdges: null,    //エッジ数
-        m_vertices: null,    //頂点配列
-        m_edges: null,       //エッジ配列
-        m_facets: null,      //面配列
+        m_numFacets  : null, //面数
+        m_numEdges   : null, //エッジ数
+        m_vertices   : null, //頂点配列
+        m_edges      : null, //エッジ配列
+        m_facets     : null, //面配列
 
         reset: function () {
             this.m_numVertices = 0;
@@ -93,7 +93,7 @@
      * @param {vec3} axis 投影軸
      * @param {Object.<number>} 最小値と最大値を返す
      */
-    function getProjection(convexMesh, axis) {
+    PhysJS.getProjection = function (convexMesh, axis) {
 
         console.log(convexMesh);
 
@@ -110,7 +110,7 @@
             min: pmin_,
             max: pmax_
         };
-    }
+    };
 
     /**
      * Create convex mesh.
@@ -128,7 +128,7 @@
      * @param {vec3} scale(= vec3(1.0)) スケール
      * @return {boolean} 凸メッシュの作成に成功した場合はtrueを返す
      */
-    function createConvexMesh(convexMesh, vertices, numVertices, indices, numIndeces, scale) {
+    PhysJS.createConvexMesh = function (convexMesh, vertices, numVertices, indices, numIndeces, scale) {
         console.log(convexMesh);
         console.log(vertices);
         console.log(indices);
@@ -143,7 +143,7 @@
             convexMesh.m_vertices[i][0] = vertices[i * 3 + 0];
             convexMesh.m_vertices[i][1] = vertices[i * 3 + 1];
             convexMesh.m_vertices[i][2] = vertices[i * 3 + 2];
-            convexMesh.m_vertices[i]    = mulPerElem(scale, convexMesh.m_vertices[i]);
+            convexMesh.m_vertices[i]    = vec3.multiply(scale, convexMesh.m_vertices[i]);
         }
         convexMesh.m_numVertices = numVertices;
 
@@ -162,15 +162,74 @@
                 );
             var areaSqr = vec3.lengthSqr(normal); //面積
 
-            if (areaSqr > EPSLION * EPSILON) { //縮退面は登録しない
+            if (areaSqr > PhysJS.EPSILON * PhysJS.EPSILON) { //縮退面は登録しない
                 convexMesh.m_facets[nf].vertId[0] = indexces[i * 3 + 0];
                 convexMesh.m_facets[nf].vertId[1] = indexces[i * 3 + 1];
                 convexMesh.m_facets[nf].vertId[2] = indexces[i * 3 + 2];
-                convexMesh.m_facets[nf].normal = vec3.multiplyScalar(normal, 1 / sqrtf(areaSqr));
+                convexMesh.m_facets[nf].normal = vec3.multiplyScalar(normal, 1 / Math.sqrt(areaSqr));
                 nf++;
             }
         }
         convexMesh.m_numFacets = nf;
-    }
+
+        //エッジバッファ作成
+        var edgeIdTable = new Array(CONVEX_MESH_MAX_VERTICS * CONVEX_MESH_MAX_VERTICS / 2);
+        //memset(edgeIdTable,0xff,sizeof(edgeIdTable));
+
+        var ne = 0;
+        for (var i = 0; i < convexMesh.m_numFacets; i++) {
+            var facet = convexMesh.m_facets[i];
+
+            for (var e = 0; e < 3; e++) {
+                var vertId0 = Math.min(facet.vertId[e % 3], facet.vertId[(e + 1) % 3]);
+                var vertId1 = Math.max(facet.vertId[e % 3], facet.vertId[(e + 1) % 3]);
+                var tableId = vertId1 * (vertId1 - 1) / 2 + vertId0;
+
+                if (edgeIdTable[tableId] === 0xff) {
+                    convexMesh.m_edges[ne].facetId[0] = i;
+                    convexMesh.m_edges[ne].facetId[1] = i;
+                    convexMesh.m_edges[ne].vertId[0] = vertId0;
+                    convexMesh.m_edges[ne].vertId[1] = vertId1;
+                    convexMesh.m_edges[ne].type = PhysJS.ConvexMesh.EdgeType.EdgeTypeConvex; //凸エッジで初期化
+                    facet.edgeId[e] = ne;
+                    edgeIdTable[tableId] = ne;
+                    ne++;
+
+                    if (ne > CONVEX_MESH_MAX_EDGES) {
+                        return false;
+                    }
+                }
+                else {
+                    //共有面を見つけたので、エッジの角度を判定
+                    console.log(edgeIdTable[tableId] < CONVEX_MESH_MAX_EDGES);
+                    var edge = convexMesh.m_edges[edgeIdTable[tableId]];
+                    var facetB = convexMesh.m_facets[edge.facetId[0]];
+
+                    console.log(edge.facetId[0] === edge.facetId[1]);
+
+                    //エッジに含まれないA面の頂点がB面の表か裏かで判断
+                    var s = convexMesh.m_vertices[facet.vertId[(e + 2) % 3]];
+                    var q = convexMesh.m_vertices[facetB.vertId[0]];
+                    var d = vec3.dot(vec3.sub(s, q), facetB.normal);
+
+                    if (d < -PhysJS.EPSILON) {
+                        edge.type = PhysJS.ConvexMesh.EdgeType.EdgeTypeConvex;
+                    }
+                    else if (d > PhysJS.EPSILON) {
+                        //本来ここに来てはいけない
+                        edge.type = PhysJS.ConvexMesh.EdgeType.EdgeTypeConcave;
+                    }
+                    else {
+                        edge.type = PhysJS.ConvexMesh.EdgeType.EdgeTypeFlat;
+                    }
+
+                    edge.facetId[1] = i;
+                }
+            }
+        }
+        convexMesh.m_numEdges = ne;
+
+        return true;
+    };
 
 }(window, document, PhysJS));
