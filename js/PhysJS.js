@@ -34,7 +34,7 @@ window.PhysJS = window.PhysJS || {};
                 vec3.cross(vec3.sub(p0, p3), vec3.sub(p1, p2))
             );
 
-        return Math.max(Math.max(areaSqrA, areaSqrB), areaSqrC);
+        return Math.max(areaSqrA, areaSqrB, areaSqrC);
     };
 
 }(window, document, PhysJS));

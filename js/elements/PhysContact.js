@@ -18,11 +18,35 @@
     PhysJS.ContactPoint.prototype = {
         constructor: PhysJS.ContactPoint,
 
-        distance: 0,  //貫通震度
-        pointA: null, //衝突点（剛体Aのローカル座標系）
-        pointB: null, //衝突点（剛体Bのローカル座標系）
-        normal: null, //衝突点の法線ベクトル（ワールド座標系）
-        constraints: null, //拘束（3つの配列）
+        /**
+         * 貫通深度
+         * @type {number}
+         */
+        distance: 0,
+
+        /**
+         * 衝突点（剛体Aのローカル座標系）
+         * @type {vec3}
+         */
+        pointA: null,
+
+        /**
+         * 衝突点（剛体Bのローカル座標系）
+         * @type {vec3}
+         */
+        pointB: null,
+
+        /**
+         * 衝突点の法線ベクトル（ワールド座標系）
+         * @type {vec3}
+         */
+        normal: null,
+
+        /**
+         * 拘束（3つの配列）
+         * @type {Array.<PhysJS.Constraint>[3]}
+         */
+        constraints: null,
     
         reset: function () {
             //TODO Constraintクラスの初期化にまわしてもいいかも。
@@ -40,6 +64,7 @@
 
     /**
      * 衝突情報
+     * @class
      */
     PhysJS.Contact = function () {
         this.m_contactPoints = [];
@@ -52,9 +77,23 @@
     PhysJS.Contact.prototype = {
         constructor: PhysJS.Contact,
 
-        m_numContacts  : null, //衝突の数
-        m_friction     : null, //摩擦
-        m_contactPoints: null, //衝突点の配列。数はNUM_CONTACTS
+        /**
+         * 衝突の数
+         * @type {number}
+         */
+        m_numContacts: null,
+
+        /**
+         * 摩擦
+         * @type {number}
+         */
+        m_friction: null,
+
+        /**
+         * 衝突点の配列。数はNUM_CONTACTS
+         * @type {Array.<PhysJS.ContactPoint>[NUM_CONTACTS]}
+         */
+        m_contactPoints: null,
     
         /**
          * 同一衝突点を探索する
@@ -65,12 +104,18 @@
          * 見つからなかった場合は -1 を返す。
          */
         findNearestContactPoint: function (newPointA, newPointB, newNormal) {
+
             var nearestIdx = -1;
             var minDiff = CONTACT_SAME_POINT;
 
             for (var i = 0; i < this.m_numContacts; i++) {
-                var diffA = PhysJS.lengthSqr(this.m_contactPoints[i].pointA - newPointA);
-                var diffB = PhysJS.lengthSqr(this.m_contactPoints[i].pointB - newPointB);
+                var diffA = PhysJS.lengthSqr(
+                        vec3.sub(this.m_contactPoints[i].pointA, newPointA)
+                    );
+
+                var diffB = PhysJS.lengthSqr(
+                        vec3.sub(this.m_contactPoints[i].pointB, newPointB)
+                    );
 
                 if (diffA < minDiff && diffB < minDiff && vec3.dot(newNormal, this.m_contactPoints[i].normal) > 0.99) {
                     minDiff = Math.max(diffA, diffB);
@@ -83,11 +128,12 @@
 
         /**
          * 衝突点を入れ替える
-         * @param newPoint 衝突点（剛体Aのローカル座標系）
-         * @param newDistance 貫通震度
-         * @return 破棄する衝突点のインデックスを返す
+         * @param {vec3} newPoint 衝突点（剛体Aのローカル座標系）
+         * @param {number} newDistance 貫通震度
+         * @return {number} 破棄する衝突点のインデックスを返す
          */
         sort4ContactPoints: function (newPoint, newDistance) {
+
             var maxPenetrationIndex = -1;
             var maxPenetration = newDistance;
 
@@ -99,7 +145,7 @@
                 }
             }
 
-            var res = [ 0.0, 0.0, 0.0, 0.0 ];
+            var res = [0.0, 0.0, 0.0, 0.0];
 
             //各点を除いたときの衝突点が作る面積のうち、最も大きくなるものを選択
             var newp = vec3(newPoint);
@@ -110,17 +156,19 @@
                 this.m_contactPoints[3].pointA
             ];
 
+            //newPointを追加し、その点とその他の点の結ぶベクトルから、
+            //一番大きな面積のものを選択する
             if (maxPenetrationIndex !== 0) {
-                res[0] = calcArea4Points(newp, p[1], p[2], p[3]);
+                res[0] = PhysJS.calcArea4Points(newp, p[1], p[2], p[3]);
             }
             if (maxPenetrationIndex !== 1) {
-                res[1] = calcArea4Points(newp, p[0], p[2], p[3]);
+                res[1] = PhysJS.calcArea4Points(newp, p[0], p[2], p[3]);
             }
             if (maxPenetrationIndex !== 2) {
-                res[2] = calcArea4Points(newp, p[0], p[1], p[3]);
+                res[2] = PhysJS.calcArea4Points(newp, p[0], p[1], p[3]);
             }
             if (maxPenetrationIndex !== 3) {
-                res[3] = calcArea4Points(newp, p[0], p[1], p[2]);
+                res[3] = PhysJS.calcArea4Points(newp, p[0], p[1], p[2]);
             }
 
             var maxIndex = 0;
@@ -146,10 +194,13 @@
 
         /**
          * 衝突点を破棄する
-         * @param i 破棄する衝突点のインデックス
+         * @param {number} i 破棄する衝突点のインデックス
          */
         removeContactPoint: function (i) {
+            //配列最後の点を引数のインデックスの位置に移動
             this.m_contactPoints[i] = this.m_contactPoints[this.m_numContacts - 1];
+
+            //全体の衝突点数を-1
             this.m_numContacts--;
         },
 
@@ -171,6 +222,7 @@
          * @param {quat} qB 剛体Bの姿勢
          */
         refresh: function (pA, qA, pB, qB) {
+
             //衝突点の更新
             //両衝突点間の距離が閾値（CONTACT_THRESHOLD_*）を超えたら消去
             for (var i = 0; i < this.m_numContacts; i++) {
@@ -178,7 +230,7 @@
                 var cpA = vec3.add(pA, quat.rotateQt(qA, this.m_contactPoints[i].pointA));
                 var cpB = vec3.add(pB, quat.rotateQt(qB, this.m_contactPoints[i].pointB));
 
-                //貫通震度がプラスに転じたかどうかをチェック
+                //貫通深度がプラスに転じたかどうかをチェック
                 var distance = vec3.dot(normal, vec3.sub(cpA, cpB));
 
                 if (distance > CONTACT_THRESHOLD_NORMAL) {
@@ -192,9 +244,9 @@
                 //深度方向を除去して両点の距離をチェック
                 //接ベクトル方向？
                 cpA = vec3.sub(cpA, vec3.multiplyScalar(normal, this.m_contactPoints[i].distance));
-                var distanceB = PhysJS.lengthSqr(vec3.sub(cpA, cpB));
+                var distanceAB = PhysJS.lengthSqr(vec3.sub(cpA, cpB));
 
-                if (distanceB > CONTACT_THRESHOLD_TANGENT) {
+                if (distanceAB > CONTACT_THRESHOLD_TANGENT) {
                     removeContactPoint(i);
                     i--;
                     continue;
@@ -204,12 +256,15 @@
 
         /**
          * 衝突点をマージする
-         * @param contact 合成する衝突情報
+         * @param {PhysJS.Contact} contact 合成する衝突情報
          */
         merge: function (contact) {
+
             for (var i = 0; i < contact.m_numContacts; i++) {
+                /** @type {PhysJS.ContactPoint} */
                 var cp = this.m_contactPoints[i];
 
+                /** @type {number} */
                 var id = this.findNearestContactPoint(cp.pointA, cp.pointB, cp.normal);
 
                 if (id >= 0) {
@@ -241,10 +296,10 @@
 
         /**
          * 衝突点を追加する
-         * @param penetrationDepth 貫通震度
-         * @param normal 衝突点の法線ベクトル（ワールド座標系）
-         * @param contactPointA 衝突点（剛体Aのローカル座標系）
-         * @param contactPointB 衝突点（剛体Bのローカル座標系）
+         * @param {number} penetrationDepth 貫通震度
+         * @param {vec3} normal 衝突点の法線ベクトル（ワールド座標系）
+         * @param {vec3} contactPointA 衝突点（剛体Aのローカル座標系）
+         * @param {vec3} contactPointB 衝突点（剛体Bのローカル座標系）
          */
         addContact: function (penetrationDepth, normal, contactPointA, contactPointB) {
             var id = this.findNearestContactPoint(contactPointA, contactPointB, normal);
