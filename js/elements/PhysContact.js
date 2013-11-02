@@ -49,16 +49,16 @@
         constraints: null,
     
         reset: function () {
-            //TODO Constraintクラスの初期化にまわしてもいいかも。
             this.constraints = [
                 new PhysJS.Constraint(),
                 new PhysJS.Constraint(),
                 new PhysJS.Constraint()
             ];
 
-            this.constraints[0].accumImpulse = 0.0;
-            this.constraints[1].accumImpulse = 0.0;
-            this.constraints[2].accumImpulse = 0.0;
+            //コンストラクタで初期化
+            //this.constraints[0].accumImpulse = 0.0;
+            //this.constraints[1].accumImpulse = 0.0;
+            //this.constraints[2].accumImpulse = 0.0;
         }
     };
 

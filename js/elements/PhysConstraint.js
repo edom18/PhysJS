@@ -3,7 +3,7 @@
     'use strict';
 
     PhysJS.Constraint = function () {
-        //
+        this.accumImpulse = 0.0;
     };
 
     PhysJS.Constraint.prototype = {
