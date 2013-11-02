@@ -11,11 +11,31 @@
     };
 
     PhysJS.Shape.prototype = {
-        m_geometry: null,          //凸メッシュ
-        m_offsetPosition: null,    //オフセット位置
-        m_offsetOrientation: null, //オフセット姿勢
-        userData: null,            //ユーザーデータ
+        /**
+         * 凸メッシュ
+         * @type {PhysJS.ConvexMesh}
+         */
+        m_geometry: null,
 
+        /**
+         * オフセット位置
+         * @type {vec3}
+         */
+        m_offsetPosition: null,
+
+        /**
+         * オフセット姿勢
+         * @type {quat}
+         */
+        m_offsetOrientation: null,
+
+        /**
+         * ユーザーデータ
+         * @type {}
+         */
+        userData: null,
+
+        //初期化
         reset: function () {
             this.m_geometry = new PhysJS.ConvexMesh();
             this.m_offsetPosition = vec3(0.0);
