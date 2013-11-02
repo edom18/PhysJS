@@ -3,6 +3,12 @@
     'use strict';
 
     PhysJS.Constraint = function () {
+        //各種プロパティを初期化
+        this.axis = vec3(0.0);
+        this.jacDiagInv = 0.0;
+        this.rhs = 0.0;
+        this.lowerLimit = 0.0;
+        this.upperLimit = 0.0;
         this.accumImpulse = 0.0;
     };
 

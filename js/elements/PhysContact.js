@@ -49,13 +49,18 @@
         constraints: null,
     
         reset: function () {
+            this.distance = 0.0;
+            this.pointA = vec3(0.0);
+            this.pointB = vec3(0.0);
+            this.normal = vec3(0.0);
+
             this.constraints = [
                 new PhysJS.Constraint(),
                 new PhysJS.Constraint(),
                 new PhysJS.Constraint()
             ];
 
-            //コンストラクタで初期化
+            //コンストラクタ側で初期化
             //this.constraints[0].accumImpulse = 0.0;
             //this.constraints[1].accumImpulse = 0.0;
             //this.constraints[2].accumImpulse = 0.0;
@@ -67,6 +72,8 @@
      * @class
      */
     PhysJS.Contact = function () {
+        this.m_numContacts = 0;
+        this.m_friction = 0.0;
         this.m_contactPoints = [];
 
         for (var i = 0; i < NUM_CONTACTS; i++) {
