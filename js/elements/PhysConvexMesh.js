@@ -97,8 +97,8 @@
 
         console.log(convexMesh);
 
-        var pmin_ =  Number.MAX_VALUE;
-        var pmax_ = -Number.MAX_VALUE;
+        var pmin_ =  PhysJS.FLT_MAX;
+        var pmax_ = -PhysJS.FLT_MAX;
 
         for (var i = 0; i < convexMesh.m_numVertices; i++) {
             var prj = vec3.dot(axis, convexMesh.m_vertices[i]);

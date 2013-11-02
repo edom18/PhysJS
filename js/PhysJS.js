@@ -7,6 +7,7 @@ window.PhysJS = window.PhysJS || {};
 
     PhysJS.PI = Math.PI;
     PhysJS.EPSILON = 1e-5;
+    PhysJS.FLT_MAX = Number.MAX_VALUE;
 
     PhysJS.clamp = function (v, a, b) {
         return Math.max(a, Math.min(v, b));
