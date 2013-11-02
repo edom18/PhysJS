@@ -9,10 +9,46 @@ window.PhysJS = window.PhysJS || {};
     PhysJS.EPSILON = 1e-5;
     PhysJS.FLT_MAX = Number.MAX_VALUE;
 
+    /**
+     * vをaとbの間になるようにクランプする
+     * @param {number} v
+     * @param {number} a
+     * @param {number} b
+     */
     PhysJS.clamp = function (v, a, b) {
         return Math.max(a, Math.min(v, b));
     };
 
+
+    /**
+     * @param {vec3} vec0
+     * @param {vec3} vec1
+     * @return {vec3}
+     */
+    PhysJS.maxPerElem = function (vec0, vec1) {
+        return vec3(
+            (vec0.x > vec1.x) ? vec0.x : vec1.x,
+            (vec0.y > vec1.y) ? vec0.y : vec1.y,
+            (vec0.z > vec1.z) ? vec0.z : vec1.z
+        );
+    };
+
+    /**
+     * @param {vec3} vec0
+     * @param {vec3} vec1
+     * @return {vec3}
+     */
+    PhysJS.minPerElem = function (vec0, vec1) {
+        return vec3(
+            (vec0.x < vec1.x) ? vec0.x : vec1.x,
+            (vec0.y < vec1.y) ? vec0.y : vec1.y,
+            (vec0.z < vec1.z) ? vec0.z : vec1.z
+        );
+    };
+
+    /**
+     * ベクトルの長さの平方根を得る
+     */
     PhysJS.lengthSqr = function (vec) {
         var result;
 
