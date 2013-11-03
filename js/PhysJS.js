@@ -21,6 +21,7 @@ window.PhysJS = window.PhysJS || {};
 
 
     /**
+     * 渡されたふたつのベクトルの各成分を比較し、大きい方を使用した新しいベクトルを作る
      * @param {vec3} vec0
      * @param {vec3} vec1
      * @return {vec3}
@@ -34,6 +35,7 @@ window.PhysJS = window.PhysJS || {};
     };
 
     /**
+     * 渡されたふたつのベクトルの各成分を比較し、小さい方を使用した新しいベクトルを作る
      * @param {vec3} vec0
      * @param {vec3} vec1
      * @return {vec3}
