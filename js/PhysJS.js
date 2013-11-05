@@ -61,7 +61,13 @@ window.PhysJS = window.PhysJS || {};
         return result;
     };
 
-    //衝突点4つから最大の面積を求める？
+    /**
+     * 衝突点4つから最大の面積を求める
+     * @param {vec3} p0
+     * @param {vec3} p1
+     * @param {vec3} p2
+     * @param {vec3} p3
+     */
     PhysJS.calcArea4Points = function (p0, p1, p2, p3) {
         var areaSqrA = PhysJS.lengthSqr(
                 vec3.cross(vec3.sub(p0, p1), vec3.sub(p2, p3))
@@ -74,6 +80,25 @@ window.PhysJS = window.PhysJS || {};
             );
 
         return Math.max(areaSqrA, areaSqrB, areaSqrC);
+    };
+
+    /**
+     * @param {vec3} normal
+     * @param {vec3} tangent1
+     * @param {vec3} tangent2
+     */
+    PhysJS.calcTangentVector = function (normal, tangent1, tangent2) {
+        var vec = vec3(1.0, 0.0, 0.0);
+        var n   = vec3(normal);
+
+        n[0] = 0.0;
+
+        if (PhysJS.lengthSqr(n) < PhysJS.EPSILON) {
+            vec = vec3(0.0, 1.0, 0.0);
+        }
+
+        vec3.copy(vec3.normalize(vec3.cross(normal, vec)), tangent1);
+        vec3.copy(vec3.normalize(vec3.cross(tangent1, normal)), tangent2);
     };
 
 }(window, document, PhysJS));
