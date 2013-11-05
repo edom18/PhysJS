@@ -3,25 +3,49 @@
     'use strict';
 
     /**
-     * Pair structure.
+     * Pair structure
      * @class
      */
     PhysJS.Pair = function () {
-        this.key = -1;
-        this.rigidBodyA = -1;
-        this.rigidBodyB = -1;
-        this.contact  = null;
-        this.pairType = null;
+        this.contact = new PhysJS.Contact();
     };
 
-    //ペアの種類
     PhysJS.Pair.PairType = {
-        PairTypeNew: 0,
-        PairTypeKeep: 1
+        pairTypeNew:  0, //新規
+        pairTypeKeep: 1  //維持
     };
 
     PhysJS.Pair.prototype = {
         constructor: PhysJS.Pair,
+
+        /**
+         * ペアの種類
+         * @type {PhysJS.Pair.PairType}
+         */
+        pairType: null,
+
+        /**
+         * ユニークなキー
+         * @type {number}
+         */
+        key: -1,
+
+        /**
+         * 剛体Aのインデックス
+         * @type {number}
+         */
+        rigidBodyA: -1,
+
+        /**
+         * 剛体Bのインデックス
+         * @type {number}
+         */
+        rigidBodyB: -1,
+
+        /**
+         * 衝突情報
+         * @type {PhysJS.Contact}
+         */
         contact: null
     };
 
