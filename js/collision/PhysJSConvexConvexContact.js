@@ -3,6 +3,7 @@
     'use strict';
 
     //TODO satCountなどの変数を調べる
+    //TODO まだ未完
     PhysJS.CHECK_MINMAX = function (axis, AMin, AMax, BMin, BMax, type) {
         satCount++;
         var d1 = AMin - Bmax;
