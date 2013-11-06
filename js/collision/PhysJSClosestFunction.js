@@ -106,15 +106,104 @@
         triangleNormal,
         closestPoint)
     {
+        /**
+         * 三角形面上の投影点
+         * @type {vec3}
+         */
+        var proj = vec3.sub(
+                point,
+                vec3.multiplyScalar(triangleNormal, vec3.dot(triangleNormal, vec3.sub(point, trianglePoint0)))
+            );
 
-    };
+        //エッジP0, P1のボロノイ領域
 
-    PhysJS.ClosestFunction = function () {
-        //
-    };
+        /** @type {vec3} */
+        var edgeP01 = vec3.sub(trianglePoint1, trianglePoint0);
 
-    PhysJS.ClosestFunction.prototype = {
-        constructor: PhysJS.ClosestFunction
+        /** @type {vec3} */
+        var edgeP01_normal = vec3.cross(edgeP01, triangleNormal);
+
+        /** @type {number} */
+        var voronoiEdgeP01_check1 = vec3.dot(vec3.sub(proj, trianglePoint0), edgeP01_normal);
+
+        /** @type {number} */
+        var voronoiEdgeP01_check2 = vec3.dot(vec3.sub(proj, trianglePoint0), edgeP01);
+
+        /** @type {number} */
+        var voronoiEdgeP01_check3 = vec3.dot(vec3.sub(proj, trianglePoint1), vec3.minus(edgeP01));
+
+        if (voronoiEdgeP01_check1 > 0.0 && voronoiEdgeP01_check2 > 0.0 && voronoiEdgeP01_check3 > 0.0) {
+            PhysJS.getClosestPointLine(trianglePoint0, edgeP01, proj, closestPoint);
+            return;
+        }
+
+
+        //エッジP1, P2のボロノイ領域
+        /** @type {vec3} */
+        var edgeP12 = vec3.sub(trianglePoint2, trianglePoint1);
+
+        /** @type {vec3} */
+        var edge12_normal = vec3.cross(edgeP12, triangleNormal);
+
+        /** @type {number} */
+        var voronoiEdgeP12_check1 = vec3.dot(vec3.sub(proj, trianglePoint1), edgeP12_normal);
+
+        /** @type {number} */
+        var voronoiEdgeP12_check2 = vec3.dot(vec3.sub(proj, trianglePoint1), edgeP12);
+
+        /** @type {number} */
+        var voronoiEdgeP12_check3 = vec3.dot(vec3.sub(proj, trianglePoint2), vec3.minus(edgeP12));
+
+        if (voronoiEdgeP12_check1 > 0.0 && voronoiEdgeP12_check2 > 0.0 && voronoiEdgeP12_check3 > 0.0) {
+            PhysJS.getClosestPointLine(trianglePoint1, edgeP12, proj, closestPoint);
+            return;
+        }
+
+        
+        //エッジP2, P2のボロノイ領域
+        /** @type {vec3} */
+        var edgeP20 = vec3.sub(trianglePoint0, trianglePoint2);
+
+        /** @type {vec3} */
+        var edgeP20_normal = vec3.cross(edgeP20, triangleNormal);
+
+        /** @type {number} */
+        var voronoiEdgeP20_check1 = vec3.dot(vec3.sub(proj, trianglePoint2), edgeP20_normal);
+
+        /** @type {number} */
+        var voronoiEdgeP20_check2 = vec3.dot(vec3.sub(proj, trianglePoint2), edgeP20);
+
+        /** @type {number} */
+        var voronoiEdgeP20_check3 = vec3.dot(vec3.sub(proj, trianglePoint0), vec3.minus(edgeP20));
+
+        if (voronoiEdgeP20_check1 > 0.0 && voronoiEdgeP20_check2 > 0.0 && voronoiEdgeP20_check3 > 0.0) {
+            PhysJS.getClosestPointLine(trianglePoint2, edgeP20, proj, closestPoint);
+            return;
+        }
+
+        //三角形の内側
+        if (voronoiEdgeP01_check1 <= 0.0 && voronoiEdgeP12_check1 <= 0.0 && voronoiEdgeP20_check1 <= 0.0) {
+            vec3.copy(proj, closestPoint);
+            return;
+        }
+
+        //頂点P0のボロノイ領域
+        if (voronoiEdgeP01_check2 <= 0.0 && voronoiEdgeP20_check3 <= 0.0) {
+            vec3.copy(trianglePoint0, closestPoint);
+            return;
+        }
+
+        //頂点P1のボロノイ領域
+        if (voronoiEdgeP01_check3 <= 0.0 && voronoiEdgeP12_check2 <= 0.0) {
+            vec3.copy(trianglePoint1, closestPoint);
+            return;
+        }
+
+        //頂点P2のボロノイ領域
+        if (voronoiEdgeP20_check2 <= 0.0 && voronoiEdgeP12_check3 <= 0.0) {
+            vec3.copy(trianglePoint2, closestPoint);
+            return;
+        }
     };
 
 }(window, document, PhysJS));
